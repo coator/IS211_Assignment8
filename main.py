@@ -3,6 +3,7 @@
 import argparse
 import random
 import sys
+import time
 
 
 class CustomErrorExceptions:
@@ -50,9 +51,6 @@ class ComputerPlayer(Player):
     def __init__(self, score, name):
         super().__init__(score, name)
 
-
-
-
     def computerRound(self, dice):
         score_count, turn_end = 0, False
         player_choice = None
@@ -79,21 +77,42 @@ class Factory:
     def getPlayerType(player_type, name):
         player_type = player_type[0]
         if player_type == "human":
-            return Player(score=0, name='Human '+str(name))
+            return Player(score=0, name='Human ' + str(name))
         elif player_type == "computer":
-            return ComputerPlayer(score=0, name='Computer '+str(name))
+            return ComputerPlayer(score=0, name='Computer ' + str(name))
         else:
             raise TypeError('No valid value found in factory')
 
 
 class Game:
-    def __init__(self, player1, player2):
+    def __init__(self, player1, player2, timed):
         """create a game instance"""
         self.turn_count = 1
         self.dice_count = 0
         self.random_seed = 0
         self.plist = (Factory.getPlayerType(player1, 1), Factory.getPlayerType(player2, 2))
-        print(self.plist)
+        self.timed = timed
+        self.timer = 0
+
+    def TimedGameProxy(self, running_time):
+        # https://www.geeksforgeeks.org/proxy-method-python-design-patterns/
+        self.timer = self.timer + running_time
+        if self.timer >= 60:
+            t = self.plist
+            if t[0].score > t[1].score:
+                print('Game over, time ran out. {} won the game!'.format(t[0].name))
+                exit()
+            elif t[0].score < t[1].score:
+                print('Game over, time ran out. {} won the game!'.format(t[1].name))
+                exit()
+            else:
+                print('Game over, time ran out. Scores were tied with {} having {} and {} having {}'.format(t[0].name,
+                                                                                                            t[0].score,
+                                                                                                            t[1].name,
+                                                                                                            t[1].score))
+                exit()
+        else:
+            return
 
     def game_state_tracker(self, dice_counter=0, turn_counter=0):
         self.turn_count += turn_counter
@@ -107,7 +126,12 @@ class Game:
                 print("|Now it is player {}'s turn  |".format(current_player.name))
                 print("_____________________________")
                 victory_check(current_player, result=0)
+                start = time.time()
                 self.gameRound(current_player)
+                end = time.time()
+                running_timer = (end - start)
+                if self.timed:
+                    self.TimedGameProxy(running_timer)
 
     def playerRound(self, dice, current_player):
         score_count, turn_end = 0, False
@@ -151,13 +175,15 @@ def argparser():
                         nargs=1, choices=["human", "computer"], required=True)
     parser.add_argument("--player2", default=Player, help="Enter if player2 will be a robot or a person", type=str,
                         nargs=1, choices=["human", "computer"], required=True)
+    parser.add_argument("--timed", default=False, help='Sets 1 minute time for game on "True", else does', type=bool,
+                        nargs=1, required=False)
     args = parser.parse_args(sys.argv[1:])
-    return args.player1, args.player2
+    return args.player1, args.player2, args.timed
 
 
 def main():
     args = argparser()
-    current = Game(player1=args[0], player2=args[1])
+    current = Game(player1=args[0], player2=args[1], timed=args[2])
     current.gamePlay()
 
 
