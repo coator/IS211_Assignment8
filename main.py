@@ -8,6 +8,8 @@ import sys
 class CustomErrorExceptions:
     class ErrorPlayerIntInvalid(ValueError):
         pass
+    class ErrorInvalidPlayerType(TypeError):
+        pass
 
 
 class Dice:
@@ -46,18 +48,40 @@ def victory_check(current_player, result):
 class ComputerPlayer(Player):
     def __init__(self, score, name):
         super().__init__(score, name)
-        self.score = 0
+
+    def computerRound(self, dice):
+        score_count, turn_end = 0, False
+        while turn_end is False:
+            result = dice.Roll()
+            if result == 1:
+                print("Computer has rolled a 0 and now it's turn is over.")
+                return
+            else:
+                score_count += result
+                victory_check(self, result=score_count)
+                print(
+                    "Player {}, it is your turn. Your score is {} points. You currently have a possible score of"
+                    " {}".format(
+                        self.name,
+                        self.score, self.score + score_count))
+                player_choice = None
+                while player_choice is None:
+                    player_choice = input(
+                        'Please choose "r" to roll or "h" to hold and end your turn: '.format(self.name))
+                    if player_choice == 'h':
+                        self.AddScore(score_count)
+                        print('{} ends their turn with {} points.'.format(self.name, self.score))
+                        return
 
 
 class Factory:
     @staticmethod
-    def getPlayerType(player_type,name):
-        print(player_type)
+    def getPlayerType(player_type, name):
         player_type=player_type[0]
         if player_type == "human":
             return Player(score=0, name=name)
         elif player_type == "computer":
-            return ComputerPlayer(score=0, name=name)
+            return ComputerPlayer(score=0, name='ComputerPlayer')
         else:
             raise TypeError('No valid value found in factory')
 
@@ -68,7 +92,7 @@ class Game:
         self.turn_count = 1
         self.dice_count = 0
         self.random_seed = 0
-        self.plist = (Factory.getPlayerType(player1, 1), Factory.getPlayerType(player2, 1))
+        self.plist = (Factory.getPlayerType(player1, 1), Factory.getPlayerType(player2, 2))
         print(self.plist)
 
     def game_state_tracker(self, dice_counter=0, turn_counter=0):
@@ -85,10 +109,43 @@ class Game:
                 victory_check(current_player, result=0)
                 self.gameRound(current_player)
 
-    def gameRound(self, current_player):
+    def playerRound(self, dice, current_player):
         score_count, turn_end = 0, False
-        dice = Dice()
         while turn_end is False:
+            self.game_state_tracker(1, 0)
+            result = dice.Roll()
+            if result == 1:
+                print("Player {},You rolled a 0 and your turn is over".format(current_player.name))
+                return
+            else:
+                score_count += result
+                victory_check(current_player, result=score_count)
+                print(
+                    "Player {}, it is your turn. Your score is {} points. You currently have a possible score of"
+                    " {}".format(
+                        current_player.name,
+                        current_player.score, current_player.score + score_count))
+                player_choice = None
+                while player_choice is None:
+                    player_choice = input(
+                        'Please choose "r" to roll or "h" to hold and end your turn: '.format(current_player.name))
+                    if player_choice == 'h':
+                        current_player.AddScore(score_count)
+                        print('{} ends their turn with {} points.'.format(current_player.name,
+                                                                          current_player.score))
+                        return
+
+
+
+    def gameRound(self, current_player):
+        dice = Dice()
+        if isinstance(current_player.name,int):
+            self.playerRound(dice,current_player)
+        elif current_player.name == 'ComputerPlayer':
+            ComputerPlayer.computerRound(current_player, dice)
+        else:
+            raise CustomErrorExceptions.ErrorInvalidPlayerType
+        """while turn_end is False:
             self.game_state_tracker(1, 0)
             result = dice.Roll()
             if result == 1:
@@ -114,7 +171,7 @@ class Game:
                     if player_choice == 'r':
                         continue
                     else:
-                        player_choice = None
+                        player_choice = None"""
 
 
 def argparser():
