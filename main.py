@@ -57,12 +57,14 @@ class Factory:
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, player1, player2):
         """create a game instance"""
         self.plist = []
         self.turn_count = 1
         self.dice_count = 0
         self.random_seed = 0
+        self.player1 = player1
+        self.player2 = player2
 
     def game_state_tracker(self, dice_counter=0, turn_counter=0):
         self.turn_count += turn_counter
@@ -137,8 +139,7 @@ def game_over():
 
 def main():
     args = argparser()
-    char_list = (Factory.getPlayerType(args[1]), Factory.getPlayerType(args[2]))
-    current = Game()
+    current = Game(Factory.getPlayerType(args[1]), Factory.getPlayerType(args[2]))
     current.newGame()
     current.gamePlay()
 
