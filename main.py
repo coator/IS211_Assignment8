@@ -8,6 +8,7 @@ import sys
 class CustomErrorExceptions:
     class ErrorPlayerIntInvalid(ValueError):
         pass
+
     class ErrorInvalidPlayerType(TypeError):
         pass
 
@@ -41,7 +42,7 @@ class Player:
 
 def victory_check(current_player, result):
     if current_player.score + result > 99:
-        print("Player {} has won with a score of {}".format(current_player.name, result + current_player.score))
+        print("{} has won with a score of {}".format(current_player.name, result + current_player.score))
         exit()
 
 
@@ -49,8 +50,12 @@ class ComputerPlayer(Player):
     def __init__(self, score, name):
         super().__init__(score, name)
 
+
+
+
     def computerRound(self, dice):
         score_count, turn_end = 0, False
+        player_choice = None
         while turn_end is False:
             result = dice.Roll()
             if result == 1:
@@ -59,29 +64,24 @@ class ComputerPlayer(Player):
             else:
                 score_count += result
                 victory_check(self, result=score_count)
-                print(
-                    "Player {}, it is your turn. Your score is {} points. You currently have a possible score of"
-                    " {}".format(
-                        self.name,
-                        self.score, self.score + score_count))
-                player_choice = None
-                while player_choice is None:
-                    player_choice = input(
-                        'Please choose "r" to roll or "h" to hold and end your turn: '.format(self.name))
-                    if player_choice == 'h':
-                        self.AddScore(score_count)
-                        print('{} ends their turn with {} points.'.format(self.name, self.score))
-                        return
+                print('scorecheck {} > {} is {}'.format(score_count, 100 - self.score, score_count > 100 - self.score))
+                print('scorecheck two {} > 25 is {}'.format(score_count, score_count > 25))
+                if score_count > 100 - self.score or score_count > 25:
+                    self.AddScore(score_count)
+                    print('{} ends their turn with {} points.'.format(self.name, self.score))
+                    return
+                else:
+                    pass
 
 
 class Factory:
     @staticmethod
     def getPlayerType(player_type, name):
-        player_type=player_type[0]
+        player_type = player_type[0]
         if player_type == "human":
-            return Player(score=0, name=name)
+            return Player(score=0, name='Human '+str(name))
         elif player_type == "computer":
-            return ComputerPlayer(score=0, name='ComputerPlayer')
+            return ComputerPlayer(score=0, name='Computer '+str(name))
         else:
             raise TypeError('No valid value found in factory')
 
@@ -135,43 +135,14 @@ class Game:
                                                                           current_player.score))
                         return
 
-
-
     def gameRound(self, current_player):
         dice = Dice()
-        if isinstance(current_player.name,int):
-            self.playerRound(dice,current_player)
-        elif current_player.name == 'ComputerPlayer':
+        if current_player.name.split()[0] == 'Human':
+            self.playerRound(dice, current_player)
+        elif current_player.name.split()[0] == 'Computer':
             ComputerPlayer.computerRound(current_player, dice)
         else:
             raise CustomErrorExceptions.ErrorInvalidPlayerType
-        """while turn_end is False:
-            self.game_state_tracker(1, 0)
-            result = dice.Roll()
-            if result == 1:
-                print("Player {},You rolled a 0 and your turn is over".format(current_player.name))
-                return
-            else:
-                score_count += result
-                victory_check(current_player, result=score_count)
-                print(
-                    "Player {}, it is your turn. Your score is {} points. You currently have a possible score of"
-                    " {}".format(
-                        current_player.name,
-                        current_player.score, current_player.score + score_count))
-                player_choice = None
-                while player_choice is None:
-                    player_choice = input(
-                        'Please choose "r" to roll or "h" to hold and end your turn: '.format(current_player.name))
-                    if player_choice == 'h':
-                        current_player.AddScore(score_count)
-                        print('{} ends their turn with {} points.'.format(current_player.name,
-                                                                          current_player.score))
-                        return
-                    if player_choice == 'r':
-                        continue
-                    else:
-                        player_choice = None"""
 
 
 def argparser():
@@ -182,7 +153,6 @@ def argparser():
                         nargs=1, choices=["human", "computer"], required=True)
     args = parser.parse_args(sys.argv[1:])
     return args.player1, args.player2
-
 
 
 def main():
