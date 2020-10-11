@@ -28,9 +28,9 @@ class Dice:
 
 
 class Player:
-    def __init__(self, score=0):
+    def __init__(self, score=0, name=None):
         self.score = score
-        print(str(Player))
+        self.name = name
 
     def AddScore(self, score_addon):
         self.score = self.score + score_addon
@@ -45,41 +45,42 @@ def victory_check(current_player, result):
 class ComputerPlayer(Player):
     def __init__(self):
         super().__init__()
+        self.score = 0
 
 
 class Factory:
     @staticmethod
-    def getPlayerType(player_type):
+    def getPlayerType(player_type,name):
+        print(player_type)
+        player_type=player_type[0]
         if player_type == "human":
-            return Player
+            return Player(score=0, name=name)
         elif player_type == "computer":
-            return ComputerPlayer
+            return ComputerPlayer(score=0, name=name)
+        else:
+            raise TypeError('No valid value found in factory')
 
 
 class Game:
     def __init__(self, player1, player2):
         """create a game instance"""
-        self.plist = []
         self.turn_count = 1
         self.dice_count = 0
         self.random_seed = 0
-        self.player1 = player1
-        self.player2 = player2
+        self.plist = (Factory.getPlayerType(player1, 1), Factory.getPlayerType(player2, 1))
+        print(self.plist)
 
     def game_state_tracker(self, dice_counter=0, turn_counter=0):
         self.turn_count += turn_counter
         self.dice_count += dice_counter
 
-    def newGame(self):
-        pass
-
     def gamePlay(self):
         while True:
             for player in range(0, 2):
-                #TODO: need to pass in player list here or at Game class
+                # TODO: need to pass in player list here or at Game class
                 current_player = self.plist[player]
                 print("_____________________________")
-                print("|Now it is player {}'s turn  |".format(player))
+                print("|Now it is player {}'s turn  |".format(current_player.name))
                 print("_____________________________")
                 victory_check(current_player, result=0)
                 self.gameRound(current_player)
@@ -91,7 +92,7 @@ class Game:
             self.game_state_tracker(1, 0)
             result = dice.Roll()
             if result == 1:
-                print("Player {},You rolled a 0 and your turn is over".format(current_player))
+                print("Player {},You rolled a 0 and your turn is over".format(current_player.name))
                 return
             else:
                 score_count += result
@@ -118,11 +119,12 @@ class Game:
 
 def argparser():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--playerint", default=2, help="Enter the amount of players in the game", type=int)
-    parser.add_argument("--player1", default=Player, help="Enter if player1 will be a robot or a person", type=int)
-    parser.add_argument("--player2", default=Player, help="Enter if player2 will be a robot or a person", type=int)
+    parser.add_argument("--player1", default=Player, help="Enter if player1 will be a robot or a person", type=str,
+                        nargs=1, choices=["human", "computer"], required=True)
+    parser.add_argument("--player2", default=Player, help="Enter if player2 will be a robot or a person", type=str,
+                        nargs=1, choices=["human", "computer"], required=True)
     args = parser.parse_args()
-    return args.playerint, args.player1, args.player2
+    return args.player1, args.player2
 
 
 def game_over():
@@ -139,8 +141,7 @@ def game_over():
 
 def main():
     args = argparser()
-    current = Game(Factory.getPlayerType(args[1]), Factory.getPlayerType(args[2]))
-    current.newGame()
+    current = Game(player1=args[0], player2=args[1])
     current.gamePlay()
 
 

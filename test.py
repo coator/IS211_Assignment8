@@ -8,6 +8,7 @@ class TestGame(unittest.TestCase):
         """Intitializes game and checks for bad player inputs"""
         g = main.Game(2, )
 
+"""AttributeError: 'NoneType' object has no attribute 'score'"""
 
 
 """    def test_game_run(self):
