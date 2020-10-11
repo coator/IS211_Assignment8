@@ -2,6 +2,7 @@
 
 import argparse
 import random
+import sys
 
 
 class CustomErrorExceptions:
@@ -39,12 +40,12 @@ class Player:
 def victory_check(current_player, result):
     if current_player.score + result > 99:
         print("Player {} has won with a score of {}".format(current_player.name, result + current_player.score))
-        game_over()
+        exit()
 
 
 class ComputerPlayer(Player):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, score, name):
+        super().__init__(score, name)
         self.score = 0
 
 
@@ -77,7 +78,6 @@ class Game:
     def gamePlay(self):
         while True:
             for player in range(0, 2):
-                # TODO: need to pass in player list here or at Game class
                 current_player = self.plist[player]
                 print("_____________________________")
                 print("|Now it is player {}'s turn  |".format(current_player.name))
@@ -123,20 +123,9 @@ def argparser():
                         nargs=1, choices=["human", "computer"], required=True)
     parser.add_argument("--player2", default=Player, help="Enter if player2 will be a robot or a person", type=str,
                         nargs=1, choices=["human", "computer"], required=True)
-    args = parser.parse_args()
+    args = parser.parse_args(sys.argv[1:])
     return args.player1, args.player2
 
-
-def game_over():
-    while True:
-        decision = input("play again? (y or n) :")
-        if decision == 'y':
-            main()
-        if decision == 'n':
-            print("goodbye!")
-            exit()
-        else:
-            pass
 
 
 def main():
