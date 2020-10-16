@@ -1,4 +1,4 @@
-"""Pig game"""
+"""the Pig game"""
 
 import argparse
 import random
